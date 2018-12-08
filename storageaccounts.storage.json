@@ -1,64 +1,91 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "storageAccountName": {
-      "defaultValue": "storacc",
-      "type": "string"
-    },
-    "sku": {
-      "allowedValues": [
-        "Standard_LRS",
-        "Standard_GRS",
-        "Standard_RAGRS",
-        "Standard_ZRS",
-        "Premium_LRS"
-      ],
-      "defaultValue": "Standard_LRS",
-      "type": "string"
-    },
-    "location": {
-      "type": "string"
-    }    
-  },
-  "resources": [
-    {
-      "name": "[parameters('storageAccountName')]",
-      "type": "Microsoft.Storage/storageAccounts",
-      "apiVersion": "2018-07-01",
-      "sku": {
-        "name": "[parameters('sku')]",
-        "tier": "Standard"
-      },
-      "kind": "StorageV2",
-      "tags": {},
-      "location": "[parameters('location')]",        
-      "properties": {
-        "networkAcls": {
-                    "bypass": "AzureServices",
-                    "virtualNetworkRules": [],
-                    "ipRules": [],
-                    "defaultAction": "Allow"
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "storageAccountName": {
+            "type": "string"
         },
-        "encryption": {
-          "services": {
-            "blob": {
-              "enabled": true
+        "location": {
+            "type": "string",
+            "defaultValue": "westeurope",
+            "allowedValues": [
+                "westeurope",
+                "northeurope"
+            ]
+        },
+        "accountType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS"
+            ]
+        },
+        "accessTier": {
+            "type": "string",
+            "defaultValue": "Cool",
+            "allowedValues": [
+                "Hot",
+                "Cool"
+            ]
+        },
+        "keyVaultName": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "kind": "StorageV2",
+        "accountKeyName": "[concat(parameters('storageAccountName'), '-key')]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-10-01",
+            "name": "[parameters('storageAccountName')]",
+            "location": "[parameters('location')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "sku": {
+                "name": "[parameters('accountType')]"
             },
-            "file": {
-              "enabled": true
-            }
-          },
-          "keySource": "Microsoft.Storage"
+            "kind": "[variables('kind')]",
+            "properties": {
+                "supportsHttpsTrafficOnly": true,
+                "accessTier": "[parameters('accessTier')]",
+                "encryption": {
+                    "services": {
+                        "blob": {
+                            "enabled": true
+                        },
+                        "file": {
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                }
+            },
+            "dependsOn": []
         },
-        "supportsHttpsTrafficOnly": true
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(parameters('keyVaultName'), '/', variables('accountKeyName'))]",
+            "apiVersion": "2015-06-01",
+            "properties": {
+                "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
+            },
+            "tags": {
+                "ResourceType": "Microsoft.Storage",
+                "ResourceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+            ]
+        }
+    ],
+    "outputs": {
+      "storageAccountName": {
+        "type": "string",
+        "value": "[parameters('storageAccountName')]"
       }
-    }
-  ],
-  "outputs": {
-    "storageAccountName": {
-      "type": "string",
-      "value": "[parameters('storageAccountName')]"
-    }
   }
 }
