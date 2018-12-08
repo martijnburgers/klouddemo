@@ -1,0 +1,88 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "keyVaultName": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"            
+        },
+        "contributorGroupObjectId": {
+            "type": "string"
+        },
+        "deployServicePrincipalId": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "tenantId": "[subscription().tenantId]",
+        "keyVaultApiVersion": "2016-10-01",        
+        "spWebAppResouceProvider": "abfa0a7c-a6b6-4736-8310-5855508787cd"
+    },
+    "resources": [        
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "name": "[parameters('KeyVaultName')]",
+            "location": "[parameters('Location')]",
+            "properties": {
+                "enabledForDeployment": true,
+                "enabledForTemplateDeployment": true,
+                "enabledForDiskEncryption": true,
+                "tenantId": "[variables('tenantId')]",
+                "accessPolicies": [
+                    {
+                        "tenantId": "[variables('tenantId')]",
+                        "objectId": "[parameters('ContributorGroupObjectId')]",
+                        "permissions": {
+                            "keys": [
+                                "encrypt", "decrypt", "wrapKey", "unwrapKey", "sign", "verify", "get", "list", "create", "update", "import", "delete", "backup", "restore", "recover", "purge"
+                            ],
+                            "secrets": [
+                                "get", "list", "set", "delete", "backup", "restore", "recover", "purge"
+                            ],
+                            "certificates": [
+                                "get", "list", "delete", "create", "import", "update", "managecontacts", "getissuers", "listissuers", "setissuers", "deleteissuers", "manageissuers", "recover", "purge"
+                            ]
+                        }
+                    },
+                    {
+                        "tenantId": "[variables('tenantId')]",
+                        "objectId": "[variables('spWebAppResouceProvider')]",
+                        "permissions": {  
+                            "keys": [
+                                "get"
+                            ],                          
+                            "secrets": [
+                                "get"
+                            ],
+                            "certificates": [
+                                "get"
+                            ]
+                        }
+                    },
+                    {
+                        "tenantId": "[variables('tenantId')]",
+                        "objectId": "[parameters('deployServicePrincipalId')]",
+                        "permissions": {  
+                            "keys": [
+                                "encrypt", "decrypt", "wrapKey", "unwrapKey", "sign", "verify", "get", "list", "create", "update", "import", "delete", "backup", "restore", "recover", "purge"
+                            ],
+                            "secrets": [
+                                "get", "list", "set", "delete", "backup", "restore", "recover", "purge"
+                            ],
+                            "certificates": [
+                                "get", "list", "delete", "create", "import", "update", "managecontacts", "getissuers", "listissuers", "setissuers", "deleteissuers", "manageissuers", "recover", "purge"
+                            ]
+                        }
+                    }
+                ],
+                "sku": {
+                    "name": "standard",
+                    "family": "A"
+                }
+            }            
+        }
+    ]
+}
