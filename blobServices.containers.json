@@ -17,7 +17,7 @@
       "name": "[concat(parameters('storageAccountName'), '/default/', parameters('containerName'))]",
       "dependsOn": [],
       "properties": {
-        "publicAccess": "Blob"
+        "publicAccess": "Container"
       }
     }
   ]
