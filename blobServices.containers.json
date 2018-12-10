@@ -2,7 +2,7 @@
   "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "storageAccName": {
+    "storageAccountName": {
       "type": "string"
     },
     "containerName": {
@@ -14,7 +14,7 @@
      {
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
       "apiVersion": "2018-03-01-preview",
-      "name": "[concat(parameters('storageAccName'), '/default/', parameters('containerName'))]",
+      "name": "[concat(parameters('storageAccountName'), '/default/', parameters('containerName'))]",
       "dependsOn": [],
       "properties": {
         "publicAccess": "None"
